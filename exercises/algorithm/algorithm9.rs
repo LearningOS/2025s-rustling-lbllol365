@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -35,9 +34,22 @@ where
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
-
     pub fn add(&mut self, value: T) {
-        //TODO
+        // 将新值添加到堆的末尾
+        self.items.push(value);
+        self.count += 1;
+    
+        // 上浮操作，确保堆的性质
+        let mut idx = self.count;
+        while idx > 1 {
+            let parent_idx = self.parent_idx(idx); // 提前计算父节点索引
+            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
+                self.items.swap(idx, parent_idx);
+                idx = parent_idx;
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +69,16 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+
+        if right > self.count {
+            left // 如果没有右孩子，返回左孩子
+        } else if (self.comparator)(&self.items[left], &self.items[right]) {
+            left // 如果左孩子更小，返回左孩子
+        } else {
+            right // 否则返回右孩子
+        }
     }
 }
 
@@ -84,8 +104,30 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+    
+        // 取出堆顶元素
+        let result = self.items.swap_remove(1);
+        self.count -= 1;
+    
+        // 下沉操作，确保堆的性质
+        let mut idx = 1;
+        while self.children_present(idx) {
+            let smallest_child = self.smallest_child_idx(idx);
+    
+            // 提前提取需要比较的值，避免借用冲突
+            let should_swap = (self.comparator)(&self.items[smallest_child], &self.items[idx]);
+            if should_swap {
+                self.items.swap(idx, smallest_child);
+                idx = smallest_child;
+            } else {
+                break;
+            }
+        }
+    
+        Some(result)
     }
 }
 

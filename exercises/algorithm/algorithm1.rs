@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -29,13 +28,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T> Default for LinkedList<T> where T: Ord + Clone{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T> LinkedList<T> where T: Ord + Clone{
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -71,13 +70,46 @@ impl<T> LinkedList<T> {
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut merged_list = LinkedList::new();
+
+        // 使用两个指针分别遍历两个链表
+        let mut node_a = list_a.start;
+        let mut node_b = list_b.start;
+    
+        while let (Some(ptr_a), Some(ptr_b)) = (node_a, node_b) {
+            unsafe {
+                let val_a = (*ptr_a.as_ptr()).val.clone(); // 解引用并克隆
+                let val_b = (*ptr_b.as_ptr()).val.clone(); // 解引用并克隆
+    
+                if val_a <= val_b {
+                    merged_list.add(val_a);
+                    node_a = (*ptr_a.as_ptr()).next;
+                } else {
+                    merged_list.add(val_b);
+                    node_b = (*ptr_b.as_ptr()).next;
+                }
+            }
         }
-	}
+
+    // 将剩余的节点添加到合并后的链表中
+    while let Some(ptr_a) = node_a {
+        unsafe {
+            let val_a = (*ptr_a.as_ptr()).val.clone(); // 解引用并克隆
+            merged_list.add(val_a);
+            node_a = (*ptr_a.as_ptr()).next;
+        }
+    }
+
+    while let Some(ptr_b) = node_b {
+        unsafe {
+            let val_b = (*ptr_b.as_ptr()).val.clone(); // 解引用并克隆
+            merged_list.add(val_b);
+            node_b = (*ptr_b.as_ptr()).next;
+        }
+    }
+
+    merged_list
+}
 }
 
 impl<T> Display for LinkedList<T>
